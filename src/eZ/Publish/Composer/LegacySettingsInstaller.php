@@ -78,7 +78,7 @@ class LegacySettingsInstaller extends LegacyInstaller
                 $finder = new Finder();
                 $finder->files()->in($clusterConfigSourceDirectory);
                 foreach ($finder as $file) {
-                    $this->io->write("Copy " . $file->getRelativePath() . " in document root");
+                    $this->io->write("Copy " . $file->getRelativePathname() . " in document root");
                     copy($file->getRealPath(), $this->ezpublishLegacyDir . '/' . basename($file->getRelativePathname()));
                 }
             }
