@@ -64,6 +64,7 @@ class LegacySettingsInstaller extends LegacyInstaller
 
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $target)
     {
+        parent::update($repo, $initial, $target);
         $this->copyClusterSettings($target);
     }
 
@@ -72,12 +73,13 @@ class LegacySettingsInstaller extends LegacyInstaller
         $extra = $package->getExtra();
         if (isset( $extra['cluster-config-directory'] )) {
             $clusterConfigSourceDirectory = $this->settingsInstallPath . '/' . $extra['cluster-config-directory'];
-            if (file_exists($clusterConfigSourceDirectory)) {
+            if (is_dir($clusterConfigSourceDirectory)) {
                 $this->io->write("Read cluster config from directory '{$clusterConfigSourceDirectory}'");
                 $finder = new Finder();
                 $finder->files()->in($clusterConfigSourceDirectory);
                 foreach ($finder as $file) {
-                    $this->io->write($file->getRealPath());
+                    $this->io->write("Copy " . $file->getRelativePath() . " in document root");
+                    copy($file->getRealPath(), $this->ezpublishLegacyDir);
                 }
             }
         }
