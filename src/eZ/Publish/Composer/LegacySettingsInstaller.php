@@ -7,22 +7,15 @@ use Composer\IO\IOInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 class LegacySettingsInstaller extends LegacyInstaller
 {
-    protected $clusterConfigSourceDirectory;
-
     protected $settingsInstallPath;
 
     public function __construct( IOInterface $io, Composer $composer, $type = '' )
     {
         parent::__construct($io, $composer, $type);
-
-        $extra = $composer->getPackage()->getExtra();
-        if (isset( $extra['cluster-config-directory'] )) {
-            $this->clusterConfigSourceDirectory = $this->ezpublishLegacyDir . '/' . $extra['cluster-config-directory'];
-            $this->io->write("Read cluster config from directory '{$this->clusterConfigSourceDirectory}'");
-        }
 
         $this->settingsInstallPath = $this->ezpublishLegacyDir . '/settings';
     }
@@ -66,9 +59,12 @@ class LegacySettingsInstaller extends LegacyInstaller
         }
         $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
 
-        $finder = new Filesystem();
-        if ($this->clusterConfigSourceDirectory){
-            $finder->files()->in($this->clusterConfigSourceDirectory);
+        $extra = $package->getExtra();
+        if (isset( $extra['cluster-config-directory'] )) {
+            $clusterConfigSourceDirectory = $this->ezpublishLegacyDir . '/' . $extra['cluster-config-directory'];
+            $this->io->write("Read cluster config from directory '{$clusterConfigSourceDirectory}'");
+            $finder = new Finder();
+            $finder->files()->in($clusterConfigSourceDirectory);
             foreach($finder as $file){
                 $this->io->write( $file->getRealPath());
             }
