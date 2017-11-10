@@ -71,12 +71,14 @@ class LegacySettingsInstaller extends LegacyInstaller
     {
         $extra = $package->getExtra();
         if (isset( $extra['cluster-config-directory'] )) {
-            $clusterConfigSourceDirectory = $this->ezpublishLegacyDir . '/' . $extra['cluster-config-directory'];
-            $this->io->write("Read cluster config from directory '{$clusterConfigSourceDirectory}'");
-            $finder = new Finder();
-            $finder->files()->in($clusterConfigSourceDirectory);
-            foreach($finder as $file){
-                $this->io->write( $file->getRealPath());
+            $clusterConfigSourceDirectory = $this->settingsInstallPath . '/' . $extra['cluster-config-directory'];
+            if (file_exists($clusterConfigSourceDirectory)) {
+                $this->io->write("Read cluster config from directory '{$clusterConfigSourceDirectory}'");
+                $finder = new Finder();
+                $finder->files()->in($clusterConfigSourceDirectory);
+                foreach ($finder as $file) {
+                    $this->io->write($file->getRealPath());
+                }
             }
         }
     }
