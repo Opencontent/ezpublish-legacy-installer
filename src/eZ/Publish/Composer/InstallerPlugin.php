@@ -17,6 +17,7 @@ class InstallerPlugin implements PluginInterface
     {
         $composer->getInstallationManager()->addInstaller( new LegacyKernelInstaller( $io, $composer ) );
         $composer->getInstallationManager()->addInstaller( new LegacyExtensionInstaller( $io, $composer ) );
+        $composer->getInstallationManager()->addInstaller( new LegacySettingsInstaller( $io, $composer ) );
     }
 
     public function deactivate( Composer $composer, IOInterface $io )
