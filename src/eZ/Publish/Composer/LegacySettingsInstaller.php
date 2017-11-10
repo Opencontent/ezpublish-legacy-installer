@@ -59,6 +59,16 @@ class LegacySettingsInstaller extends LegacyInstaller
         }
         $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
 
+        $this->copyClusterSettings($package);
+    }
+
+    public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $target)
+    {
+        $this->copyClusterSettings($target);
+    }
+
+    private function copyClusterSettings(PackageInterface $package)
+    {
         $extra = $package->getExtra();
         if (isset( $extra['cluster-config-directory'] )) {
             $clusterConfigSourceDirectory = $this->ezpublishLegacyDir . '/' . $extra['cluster-config-directory'];
