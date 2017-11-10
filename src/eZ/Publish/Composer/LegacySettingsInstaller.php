@@ -59,6 +59,7 @@ class LegacySettingsInstaller extends LegacyInstaller
         }
         $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
 
+        $this->settingsInstallPath = $actualSettingsInstallPath;
         $this->copyClusterSettings($package);
     }
 
