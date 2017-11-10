@@ -79,7 +79,7 @@ class LegacySettingsInstaller extends LegacyInstaller
                 $finder->files()->in($clusterConfigSourceDirectory);
                 foreach ($finder as $file) {
                     $this->io->write("Copy " . $file->getRelativePath() . " in document root");
-                    copy($file->getRealPath(), $this->ezpublishLegacyDir);
+                    copy($file->getRealPath(), $this->ezpublishLegacyDir . '/' . basename($file->getRelativePathname()));
                 }
             }
         }
