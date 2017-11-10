@@ -65,6 +65,14 @@ class LegacySettingsInstaller extends LegacyInstaller
             $this->io->write( "Updating settings over existing installation." );
         }
         $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
+
+        $finder = new Filesystem();
+        if ($this->clusterConfigSourceDirectory){
+            $finder->files()->in($this->clusterConfigSourceDirectory);
+            foreach($finder as $file){
+                $this->io->write( $file->getRealPath());
+            }
+        }
     }
 
     protected function generateTempDirName()
