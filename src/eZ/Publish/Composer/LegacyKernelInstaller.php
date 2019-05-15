@@ -14,6 +14,7 @@ use Composer\IO\IOInterface;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
+use RecursiveDirectoryIterator;
 
 /**
  * Installer for eZ Publish legacy kernel.
@@ -75,7 +76,7 @@ class LegacyKernelInstaller extends LegacyInstaller
         {
             $this->io->write( "Updating new code over existing installation." );
         }
-        $fileSystem->copyThenRemove( $this->ezpublishLegacyDir, $actualLegacyDir );
+        $this->copyThenRemoveExcludingVarDir($this->ezpublishLegacyDir, $actualLegacyDir );
 
         // if parent::install installed binaries, then the resulting shell/bat stubs will not work. We have to redo them
         if( method_exists($this,'removeBinaries') )
@@ -119,7 +120,7 @@ class LegacyKernelInstaller extends LegacyInstaller
             $this->io->write( "Updating new code over existing installation." );
         }
         /// @todo the following function does not warn of any failures in copying stuff over. We should probably fix it...
-        $fileSystem->copyThenRemove( $this->ezpublishLegacyDir, $actualLegacyDir );
+        $this->copyThenRemoveExcludingVarDir($this->ezpublishLegacyDir, $actualLegacyDir );
 
         $this->ezpublishLegacyDir = $actualLegacyDir;
     }
@@ -139,5 +140,27 @@ class LegacyKernelInstaller extends LegacyInstaller
         }
 
         return $tmpDir;
+    }
+
+    protected function copyThenRemoveExcludingVarDir($source, $target)
+    {
+        $fileSystem = new Filesystem();
+
+        $it = new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS);
+        foreach ($it as $file)
+        {
+            if ($file->isDir() && $file->getFileName() == 'var')
+            {
+                $varDir = $file->getPathname();
+                $fileSystem->removeDirectory($varDir);
+                if ( $this->io->isVerbose() )
+                {
+                    $this->io->write( "Remove var dir in new code" );
+                }
+                break;
+            }
+        }
+
+        $fileSystem->copyThenRemove( $source, $target );
     }
 }
