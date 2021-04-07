@@ -8,6 +8,7 @@ use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Symfony\Component\Finder\Finder;
+use React\Promise\PromiseInterface;
 
 class LegacySettingsInstaller extends LegacyInstaller
 {
@@ -50,23 +51,44 @@ class LegacySettingsInstaller extends LegacyInstaller
             $this->io->write( "Installing settings in temporary directory." );
         }
 
-        parent::install( $repo, $package );
+        $install = function () use ( $fileSystem, $actualSettingsInstallPath, $package ){
+            /// @todo the following function does not warn of any failures in copying stuff over. We should probably fix it...
+            if ( $this->io->isVerbose() )
+            {
+                $this->io->write( "Updating settings over existing installation." );
+            }
+            $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
 
-        /// @todo the following function does not warn of any failures in copying stuff over. We should probably fix it...
-        if ( $this->io->isVerbose() )
+            $this->settingsInstallPath = $actualSettingsInstallPath;
+            $this->copyClusterSettings($package);
+        };
+
+        $promise = parent::install( $repo, $package );
+        // Composer v2 might return a promise here
+        if ( $promise instanceof PromiseInterface )
         {
-            $this->io->write( "Updating settings over existing installation." );
+            return $promise->then( $install );
         }
-        $fileSystem->copyThenRemove( $this->settingsInstallPath, $actualSettingsInstallPath );
 
-        $this->settingsInstallPath = $actualSettingsInstallPath;
-        $this->copyClusterSettings($package);
+        // If not, execute the code right away as parent::install executed synchronously (composer v1, or v2 without async)
+        $install();
     }
 
     public function update(InstalledRepositoryInterface $repo, PackageInterface $initial, PackageInterface $target)
     {
-        parent::update($repo, $initial, $target);
-        $this->copyClusterSettings($target);
+        $update = function () use ($target){
+            $this->copyClusterSettings($target);
+        };
+
+        $promise = parent::update($repo, $initial, $target);
+        // Composer v2 might return a promise here
+        if ( $promise instanceof PromiseInterface )
+        {
+            return $promise->then( $update );
+        }
+
+        // If not, execute the code right away as parent::update executed synchronously (composer v1, or v2 without async)
+        $update();
     }
 
     private function copyClusterSettings(PackageInterface $package)
